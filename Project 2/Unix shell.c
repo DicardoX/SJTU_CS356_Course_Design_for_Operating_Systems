@@ -107,7 +107,7 @@ int main(void)
             continue;
         }
         /** History feature creating */
-        if(strcmp(args[0], "!!") == 0 && prev_argNum != 0){
+        if(strncmp(args[0], "!!", 2) == 0 && argNum == 1 && prev_argNum != 0){
             for(int i=0; i <= prev_argNum; i++){
                 args[i] = prev_args[i];                 // Note: If we use strcpy(dst, src) here, there will be a problem: may take NULL as a parameter of
             }                                           // strcpy(), which will cause an exception and terminate the program.
@@ -119,7 +119,7 @@ int main(void)
             display_current_args(argNum, args);
 
         }
-        else if(strcmp(args[0], "!!") == 0 && prev_argNum == 0){
+        else if(strncmp(args[0], "!!", 2) == 0 && argNum == 1 && prev_argNum == 0){
             printf("No commands in history...\n");
             continue;
         }
@@ -181,7 +181,7 @@ int main(void)
             char line[10];
             int father_info = read(fd[0], line, 10);
             if(father_info == NON_WAITING)
-                printf("osh>----");
+                printf("osh>");
 
             exit(0);                               // Once child process have finished, exit(0)
         }
