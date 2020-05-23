@@ -51,14 +51,17 @@ void Detect(int* opt, int* optIdx, char *args[], int argNum)
         if(strcmp(args[i], ">") == 0){      // Output redirection
             (*opt) = OUTPUT_REDIRECTION;
             (*optIdx) = i;
+            return;
         }
         else if(strcmp(args[i], "<") == 0){ // Input redirection
             (*opt) = INPUT_REDIRECTION;
             (*optIdx) = i;
+            return;
         }
         if(strcmp(args[i], "|") == 0){      // Pipe communication
             (*opt) = PIPE_COMMUNICATION;
             (*optIdx) = i;
+            return;
         }
     }
 }
@@ -74,15 +77,14 @@ int main(void)
     char* cur_cmd;
     int fd[2];
     int osh_flag = 1;                   // For father process to determine whether print "osh>" or not
-
     pid_t pid = 0;
 
     while (should_run){
         if(osh_flag == 1) {
             printf("osh>");
-            osh_flag = 1;
         }
         fflush(stdout);
+        osh_flag = 1;
 
         /** Read command line */
         cur_cmd = (char*)malloc(sizeof(char) * MAX_SIZE);
@@ -106,7 +108,7 @@ int main(void)
         }
         /** History feature creating */
         if(strcmp(args[0], "!!") == 0 && prev_argNum != 0){
-            for(int i=0; i < prev_argNum; i++){
+            for(int i=0; i <= prev_argNum; i++){
                 args[i] = prev_args[i];                 // Note: If we use strcpy(dst, src) here, there will be a problem: may take NULL as a parameter of
             }                                           // strcpy(), which will cause an exception and terminate the program.
             argNum = prev_argNum;
@@ -122,7 +124,7 @@ int main(void)
             continue;
         }
         prev_argNum = argNum;
-        for(int i=0; i < argNum; i++){
+        for(int i=0; i <= argNum; i++){
             prev_args[i] = args[i];
         }
 
@@ -174,10 +176,12 @@ int main(void)
                     break;
             }
 
+            printf("Child process finished...\n");
+
             char line[10];
             int father_info = read(fd[0], line, 10);
             if(father_info == NON_WAITING)
-                printf("osh>");
+                printf("osh>----");
 
             exit(0);                               // Once child process have finished, exit(0)
         }
@@ -192,6 +196,7 @@ int main(void)
             else {
                 write(fd[1], "Non-waiting\n", NON_WAITING);
                 osh_flag = 0;
+                printf("Father is going on...\n");
                 signal(SIGCHLD, SIG_IGN);           // Signal to avoid zombie, inform kernel that the child process should be recycled by kernel
             }                                       // SIGCHLD is sent by child process when it finishes, SIG_IGN means father process ignore this signal
         }
@@ -201,7 +206,7 @@ int main(void)
         //free(cur_cmd);
         for(int i=0; i < argNum; i++)
             args[i] = NULL;
-
+        argNum = 0;
         /**
          *  After reading user input, the steps are:
          *  (1) Fork a child process using fork()
