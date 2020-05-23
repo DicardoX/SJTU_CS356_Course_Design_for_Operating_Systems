@@ -73,7 +73,7 @@ int main(void)
     int prev_argNum = 0;                // Counter for history buffer
     char* cur_cmd;
     int fd[2];
-    int osh_flag = 1;
+    int osh_flag = 1;                   // For father process to determine whether print "osh>" or not
 
     pid_t pid = 0;
 
