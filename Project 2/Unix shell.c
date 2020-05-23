@@ -15,6 +15,8 @@
 #define OUTPUT_REDIRECTION 1
 #define INPUT_REDIRECTION 2
 #define PIPE_COMMUNICATION 3
+#define WAITING 6
+#define NON_WAITING 7
 
 int get_input(char *args[], char *cur_cmd)
 {
@@ -70,11 +72,16 @@ int main(void)
     int argNum = 0;                     // # of arguments in command line
     int prev_argNum = 0;                // Counter for history buffer
     char* cur_cmd;
+    int fd[2];
+    int osh_flag = 1;
 
     pid_t pid = 0;
 
     while (should_run){
-        printf("osh>");
+        if(osh_flag == 1) {
+            printf("osh>");
+            osh_flag = 1;
+        }
         fflush(stdout);
 
         /** Read command line */
@@ -119,14 +126,21 @@ int main(void)
             prev_args[i] = args[i];
         }
 
+        /** In case of when "&", father process print "osh>" earlier than child process print thing. So, we use pipe() to help father process
+         * and child process communicate to each other to solve this.*/
+        if(pipe(fd) < 0){
+            printf("Pipe error!\n");
+            exit(1);
+        }
+
         /** Process Creation */
         int opt = 0;
         int optIdx = 0;
         int waitFlag = 1;                   // Whether father waits child
 
-        if(strcmp(args[argNum - 2], "&") == 0) {    // Father process isn't going to wait
+        if(strcmp(args[argNum - 1], "&") == 0) {    // Father process isn't going to wait
             waitFlag = 0;
-            args[argNum - 2] = NULL;                // Delete "&"
+            args[argNum - 1] = NULL;                // Delete "&"
             argNum--;
         }
 
@@ -137,6 +151,7 @@ int main(void)
         }
         if(pid == 0)                                // Child process -> operating functions
         {
+            close(fd[1]);                           // Child process use fd[0]
             // Detect if redirection or communication
             Detect(&opt, &optIdx, args, argNum);
 
@@ -158,18 +173,29 @@ int main(void)
                     printf("Error occurred when determining options!\n");
                     break;
             }
+
+            char line[10];
+            int father_info = read(fd[0], line, 10);
+            if(father_info == NON_WAITING)
+                printf("osh>");
+
             exit(0);                               // Once child process have finished, exit(0)
         }
         else if(pid > 0)                            // Father process -> wait or not
         {
+            close(fd[0]);                           // Father process use fd[1]
             if(waitFlag){                          // If the last argument isn't "&", wait
+                write(fd[1], "Waiting\n", WAITING);
                 wait(NULL);
                 printf("Child Complete...\n");
             }
-            else{
-                signal(SIGCHLD, SIG_IGN);         // Signal to avoid zombie, inform kernel that the child process should be recycled by kernel
+            else {
+                write(fd[1], "Non-waiting\n", NON_WAITING);
+                osh_flag = 0;
+                signal(SIGCHLD, SIG_IGN);           // Signal to avoid zombie, inform kernel that the child process should be recycled by kernel
             }                                       // SIGCHLD is sent by child process when it finishes, SIG_IGN means father process ignore this signal
         }
+
 
         /** Clean input */
         //free(cur_cmd);
