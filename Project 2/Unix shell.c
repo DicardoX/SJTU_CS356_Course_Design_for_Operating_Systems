@@ -112,6 +112,101 @@ int input_redirection(int optIdx, char *args[], int *argNum)
     return fd_in;
 }
 
+void pipe_communication(int optIdx, char *args[], int *argNum, int *son_argNum)
+{
+    pid_t ppid = 0;
+    int waitFlag = 1;
+    int fd[2];
+    char *secArgs[MAX_LINE / 2 + 1];
+    char *firArgs[MAX_LINE / 2 + 1];
+
+    for(int i = optIdx+1; i < (*argNum); i++)   // Copy the second sub command
+        secArgs[i - optIdx - 1] = args[i];
+    for(int i = 0; i <= optIdx; i++)
+        firArgs[i] = args[i];
+
+
+    (*son_argNum) =(*argNum) - optIdx - 1;      // # of arguments in the second sub command
+    (*argNum) = optIdx;                         // # of arguments in the first sub command
+    firArgs[(*argNum)] = NULL;                        // To remove the rest part behind < or > or |
+    secArgs[(*son_argNum)] = NULL;
+
+    if(strcmp(firArgs[(*argNum) - 1], "&") == 0){
+        firArgs[(*argNum) - 1] = NULL;             // Delete "&", no matter which sub command "&" is in, the father will wait for son
+        (*argNum)--;
+        waitFlag = 0;
+    }
+    if(strcmp(secArgs[(*son_argNum) - 1], "&") == 0){
+        secArgs[(*son_argNum) - 1] = NULL;         // Delete "&"
+        (*son_argNum)--;
+        waitFlag = 0;
+    }
+
+    if(pipe(fd) < 0){
+        printf("Failed to construct pipe in pipe communication...\n");
+        exit(1);
+    }
+    ppid = fork();
+    if(ppid < 0){
+        perror("Fork error!\n");
+    }
+    if(ppid == 0)                   // Child process
+    {
+        if(close(fd[1]) < 0){
+            printf("Error occurred when closing fd[1] in pipe communication...\n");
+            exit(1);
+        }
+
+        char line[20];
+        int father_call = read(fd[0], line, 20);                // Receive the signal from father process
+        if(father_call == 19){
+            printf("Successfully pipe communication!\n");
+            printf("The message from father process is: %s\n", line);       // Prove that the pipe does work
+        }
+        int res_dup_son = dup2(fd[0], STDOUT_FILENO);
+        if(res_dup_son < 0){
+            printf("fd[0] dup in pipe communication error...\n");
+            exit(1);
+        }
+        int res = 0;
+        res = execvp(secArgs[0], secArgs);                  // The kernel load new program into the child process and execute
+        if(res < 0){
+            printf("The second command execution error in pipe communication...\n");
+            exit(1);
+        }
+        if(close(fd[0]) < 0){
+            printf("Error occurred when closing fd[0] in pipe communication...\n");
+            exit(1);
+        }
+        exit(0);                                                    // Once child process have finished, exit(0)
+    }
+    else if(ppid > 0)               // Father process
+    {
+        if(close(fd[0]) < 0){
+            printf("Error occurred when closing fd[0] in pipe communication...\n");
+            exit(1);
+        }
+        write(fd[1], "Successfully pipe!\n", 19);       // Send signal to child process
+        if(waitFlag){
+            wait(NULL);
+            printf("Child Complete...\n");
+        }
+        else {
+            signal(SIGCHLD, SIG_IGN);
+        }
+        int res_dup_father = dup2(fd[1], STDIN_FILENO);
+        if(res_dup_father < 0){
+            printf("fd[1] dup in pipe communication error...\n");
+            exit(1);
+        }
+        execvp(firArgs[0], firArgs);                  // Note: this will return -1 since it is exactly the current program
+        if(close(fd[1]) < 0){
+            printf("Error occurred when closing fd[1] in pipe communication...\n");
+            exit(1);
+        }
+    }
+}
+
 int main(void)
 {
     char *args[MAX_LINE/2 + 1];         // Command line arguments
@@ -147,6 +242,7 @@ int main(void)
 
         /** Transfer to string array */
         argNum = get_input(args, cur_cmd);
+        args[argNum] = NULL;
 
         //printf("%d\n", argNum);
         //printf("pid: %d\n", pid);
@@ -213,9 +309,11 @@ int main(void)
             Detect(&opt, &optIdx, args, argNum);
 
             // Operation based on option above
-            int res;
+            int res = -1;
+            int son_argNum = 0;
             switch (opt) {
                 case 0:
+                    execvp(args[0], args);      // Note: this will return -1 since it is exactly the current program
                     printf("Normal operation...\n");
                     break;
                 case OUTPUT_REDIRECTION:
@@ -237,7 +335,10 @@ int main(void)
                     printf("Normal operation...\n");                // Read the operation from the file and perform the operation
                     break;
                 case PIPE_COMMUNICATION:
+                    pipe_communication(optIdx, args, &argNum, &son_argNum);
                     printf("Pipe communication...\n");
+                    printf("Normal operation...\n");                // Perform the first operation
+                    printf("Normal operation...\n");                // Perform the second operation
                     break;
                 default:
                     printf("Error occurred when determining options!\n");
@@ -251,6 +352,7 @@ int main(void)
             if(father_info == NON_WAITING)
                 printf("osh>");
 
+            close(fd[0]);
             exit(0);                               // Once child process have finished, exit(0)
         }
         else if(pid > 0)                            // Father process -> wait or not
@@ -267,6 +369,7 @@ int main(void)
                 printf("Father is going on...\n");
                 signal(SIGCHLD, SIG_IGN);           // Signal to avoid zombie, inform kernel that the child process should be recycled by kernel
             }                                       // SIGCHLD is sent by child process when it finishes, SIG_IGN means father process ignore this signal
+            close(fd[1]);
         }
 
 
