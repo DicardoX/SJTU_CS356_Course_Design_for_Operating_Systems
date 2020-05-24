@@ -88,6 +88,30 @@ int output_redirection(int optIdx, char *args[], int *argNum)
     return fd_out;
 }
 
+int input_redirection(int optIdx, char *args[], int *argNum)
+{
+    int fd_in = open(args[optIdx + 1], O_RDONLY, 0644);                  // Authority: read only
+    char *fileName = args[optIdx + 1];
+    args[optIdx] = NULL;
+    (*argNum) = optIdx;
+    if(fd_in >= 0){
+        int dup_res = dup2(fd_in, STDIN_FILENO);
+        if(dup_res < 0){
+            printf("Dup2 in input redirection error...\n");
+            exit(1);
+        }
+    }
+    else{
+        printf("Failed to open %s...\n", fileName);
+        exit(1);
+    }
+    if(close(fd_in) < 0){                                          // Close the file descriptor
+        printf("Error occurred when closing file descriptor in input redirection...\n");
+        exit(1);
+    }
+    return fd_in;
+}
+
 int main(void)
 {
     char *args[MAX_LINE/2 + 1];         // Command line arguments
@@ -204,7 +228,13 @@ int main(void)
                     printf("Normal operation...\n");                // Perform the operation and write the result into the file
                     break;
                 case INPUT_REDIRECTION:
+                    res = input_redirection(optIdx, args, &argNum);
+                    if(res < 0){
+                        printf("Failed to input redirection...\n");
+                        exit(1);
+                    }
                     printf("Input redirection...\n");
+                    printf("Normal operation...\n");                // Read the operation from the file and perform the operation
                     break;
                 case PIPE_COMMUNICATION:
                     printf("Pipe communication...\n");
