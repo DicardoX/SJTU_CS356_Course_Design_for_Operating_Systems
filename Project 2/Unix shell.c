@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define MAX_LINE 80                     // The maximum length command
 #define MAX_SIZE 256                    // The maximum length of each argument
@@ -64,6 +66,26 @@ void Detect(int* opt, int* optIdx, char *args[], int argNum)
             return;
         }
     }
+}
+
+int output_redirection(int optIdx, char *args[], int *argNum)
+{
+    fflush(stdout);
+    int fd_out = open(args[optIdx + 1], O_WRONLY | O_TRUNC | O_CREAT, 0644);          // Authority: read/write/create
+    args[optIdx] = NULL;
+    (*argNum) = optIdx;
+    if(fd_out >= 0){
+        int dup_res = dup2(fd_out, STDOUT_FILENO);                  /* just a little different from dup(), dup2() can specify the newfd*/
+        if(dup_res < 0){                                         /*we want to use. It the newfd is already opened, this function will first close it and reopen */
+            printf("Dup2 in output redirection error...\n");
+            exit(1);
+        }
+    }
+    if(close(fd_out) < 0){                                          // Close the file descriptor
+        printf("Error occurred when closing file descriptor in output redirection...\n");
+        exit(1);
+    }
+    return fd_out;
 }
 
 int main(void)
@@ -167,12 +189,19 @@ int main(void)
             Detect(&opt, &optIdx, args, argNum);
 
             // Operation based on option above
+            int res;
             switch (opt) {
                 case 0:
                     printf("Normal operation...\n");
                     break;
                 case OUTPUT_REDIRECTION:
-                    printf("Output redirection...\n");
+                    res = output_redirection(optIdx, args, &argNum);
+                    if(res < 0){
+                        printf("Failed to output redirection...\n");
+                        exit(1);
+                    }
+                    printf("Output redirection...\n");              // Will be written into the file
+                    printf("Normal operation...\n");                // Perform the operation and write the result into the file
                     break;
                 case INPUT_REDIRECTION:
                     printf("Input redirection...\n");
