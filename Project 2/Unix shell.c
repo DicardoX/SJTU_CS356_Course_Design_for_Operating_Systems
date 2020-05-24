@@ -81,6 +81,9 @@ int output_redirection(int optIdx, char *args[], int *argNum)
             exit(1);
         }
     }
+
+    execvp(args[0], args);
+
     if(close(fd_out) < 0){                                          // Close the file descriptor
         printf("Error occurred when closing file descriptor in output redirection...\n");
         exit(1);
@@ -105,6 +108,9 @@ int input_redirection(int optIdx, char *args[], int *argNum)
         printf("Failed to open %s...\n", fileName);
         exit(1);
     }
+
+    execvp(args[0], args);
+    
     if(close(fd_in) < 0){                                          // Close the file descriptor
         printf("Error occurred when closing file descriptor in input redirection...\n");
         exit(1);
