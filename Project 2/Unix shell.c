@@ -90,6 +90,15 @@ int main(void)
         cur_cmd = (char*)malloc(sizeof(char) * MAX_SIZE);
         fgets(cur_cmd, MAX_SIZE-1, stdin);
 
+        if(strcmp(cur_cmd, "\n") == 0){
+            printf("The current command is empty, please try again...\n");
+            continue;
+        }
+        if(strcmp(cur_cmd, "") == 0){
+            printf("Error occurred when input...\n");
+            exit(1);
+        }
+
         /** Transfer to string array */
         argNum = get_input(args, cur_cmd);
 
