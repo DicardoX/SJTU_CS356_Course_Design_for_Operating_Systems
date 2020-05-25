@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #define MAX_LINE 80                     // The maximum length command
 #define MAX_SIZE 256                    // The maximum length of each argument
