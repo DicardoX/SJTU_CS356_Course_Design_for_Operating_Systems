@@ -111,7 +111,7 @@ int input_redirection(int optIdx, char *args[], int *argNum)
     }
 
     execvp(args[0], args);
-    
+
     if(close(fd_in) < 0){                                          // Close the file descriptor
         printf("Error occurred when closing file descriptor in input redirection...\n");
         exit(1);
@@ -170,13 +170,13 @@ void pipe_communication(int optIdx, char *args[], int *argNum, int *son_argNum)
             printf("Successfully pipe communication!\n");
             printf("The message from father process is: %s\n", line);       // Prove that the pipe does work
         }
-        int res_dup_son = dup2(fd[0], STDOUT_FILENO);
+        int res_dup_son = dup2(fd[0], STDIN_FILENO);
         if(res_dup_son < 0){
             printf("fd[0] dup in pipe communication error...\n");
             exit(1);
         }
         int res = 0;
-        res = execvp(secArgs[0], secArgs);                  // The kernel load new program into the child process and execute
+        execvp(secArgs[0], secArgs);                  // The kernel load new program into the child process and execute
         if(res < 0){
             printf("The second command execution error in pipe communication...\n");
             exit(1);
