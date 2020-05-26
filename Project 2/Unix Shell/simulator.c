@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #define MAX_LINE 80                     // The maximum length command
 #define MAX_SIZE 256                    // The maximum length of each argument
@@ -83,7 +84,9 @@ int output_redirection(int optIdx, char *args[], int *argNum)
         }
     }
 
-    execvp(args[0], args);
+    if(execvp(args[0], args) < 0){
+    	perror("Execution error!\n");
+    }
 
     if(close(fd_out) < 0){                                          // Close the file descriptor
         printf("Error occurred when closing file descriptor in output redirection...\n");
@@ -385,13 +388,6 @@ int main(void)
         for(int i=0; i < argNum; i++)
             args[i] = NULL;
         argNum = 0;
-        /**
-         *  After reading user input, the steps are:
-         *  (1) Fork a child process using fork()
-         *  (2) The child process will invoke execvp()
-         *  (3) parent will invoke wait() unless command included &
-         */
-
     }
 
     return 0;
