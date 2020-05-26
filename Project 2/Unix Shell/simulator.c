@@ -19,8 +19,8 @@
 #define OUTPUT_REDIRECTION 1
 #define INPUT_REDIRECTION 2
 #define PIPE_COMMUNICATION 3
-#define WAITING 6
-#define NON_WAITING 7
+#define WAITING 8
+#define NON_WAITING 12
 
 int get_input(char *args[], char *cur_cmd)
 {
@@ -85,7 +85,7 @@ int output_redirection(int optIdx, char *args[], int *argNum)
     }
 
     if(execvp(args[0], args) < 0){
-    	perror("Execution error!\n");
+        perror("Execution error!\n");
     }
 
     if(close(fd_out) < 0){                                          // Close the file descriptor
@@ -196,7 +196,7 @@ void pipe_communication(int optIdx, char *args[], int *argNum, int *son_argNum)
             printf("Error occurred when closing fd[0] in pipe communication...\n");
             exit(1);
         }
-        write(fd[1], "Successfully pipe!\n", 19);       // Send signal to child process
+        write(fd[1], "Successfully pipe!!", 19);       // Send signal to child process
         if(waitFlag){
             wait(NULL);
             printf("Child Complete...\n");
@@ -321,6 +321,7 @@ int main(void)
             // Operation based on option above
             int res = -1;
             int son_argNum = 0;
+
             switch (opt) {
                 case 0:
                     execvp(args[0], args);      // Note: this will return -1 since it is exactly the current program
@@ -357,8 +358,8 @@ int main(void)
 
             printf("Child process finished...\n");
 
-            char line[10];
-            int father_info = read(fd[0], line, 10);
+            char line[15];
+            int father_info = read(fd[0], line, 15);
             if(father_info == NON_WAITING)
                 printf("osh>");
 
@@ -379,6 +380,7 @@ int main(void)
                 printf("Father is going on...\n");
                 signal(SIGCHLD, SIG_IGN);           // Signal to avoid zombie, inform kernel that the child process should be recycled by kernel
             }                                       // SIGCHLD is sent by child process when it finishes, SIG_IGN means father process ignore this signal
+
             close(fd[1]);
         }
 
