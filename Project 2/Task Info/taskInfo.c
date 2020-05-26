@@ -29,12 +29,10 @@ static struct file_operations proc_ops = {
 
 int proc_init(void)
 {	
-	printk(KERN_INFO, "/proc/%s is being created...\n", PROC_NAME);
-
 	/**	Create an entry in the /proc file system */
 	proc_create(PROC_NAME, 0666, NULL, &proc_ops);
 	
-	printk(KERN_INFO, "/proc/%s has been created...\n", PROC_NAME);
+	printk(KERN_INFO "/proc/%s has been created...\n", PROC_NAME);
 	
 	return 0;
 }
@@ -44,7 +42,7 @@ void proc_exit(void)
 	/**	Remove the entry */ 
 	remove_proc_entry(PROC_NAME, NULL);
 	
-	printk(KERN_INFO, "/proc/%s has been removed...\n", PROC_NAME);
+	printk(KERN_INFO "/proc/%s has been removed...\n", PROC_NAME);
 }
 
 static ssize_t proc_read(struct file *file, char __user *usr_buf, size_t count, loff_t *pos)
@@ -62,14 +60,14 @@ static ssize_t proc_read(struct file *file, char __user *usr_buf, size_t count, 
 	completed = 1;
 	
 	if((task = pid_task(find_vpid(pid), PIDTYPE_PID)) == NULL){
-		printk(KERN_INFO, "Error: pid %ld doesn't exist...\n", pid);
+		printk(KERN_INFO "Error: pid %ld doesn't exist...\n", pid);
 		return 0;
 	}
 	
 	rv = sprintf(buffer, "command = %s pid = %d state = %ld\n", task->comm, task->pid, task->state);
 	
 	if(copy_to_user(usr_buf, buffer, rv) != 0){
-		printk(KERN_INFO, "Error: Failed to copy info to user mode...\n");
+		printk(KERN_INFO "Error: Failed to copy info to user mode...\n");
 		rv = -1;
 	}
 	
@@ -84,7 +82,7 @@ static ssize_t proc_write(struct file *file, const char __user *usr_buf, size_t 
 	
 	if(copy_from_user(k_mem, usr_buf, count) != 0)
 	{
-		printk(KERN_INFO, "Error: Failed to copy info from user mode...\n");
+		printk(KERN_INFO "Error: Failed to copy info from user mode...\n");
 		return -1;
 	}
 	
