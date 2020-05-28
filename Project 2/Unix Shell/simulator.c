@@ -160,58 +160,47 @@ void pipe_communication(int optIdx, char *args[], int *argNum, int *son_argNum)
     if(ppid < 0){
         perror("Fork error!\n");
     }
-    if(ppid == 0)                   // Child process
+    if(ppid == 0)                   // Child process writes, so close fd[0]
     {
-        if(close(fd[1]) < 0){
-            printf("Error occurred when closing fd[1] in pipe communication...\n");
+        if(close(fd[0]) < 0){		
+            printf("Error occurred when closing fd[0] in pipe communication...\n");
             exit(1);
         }
 
-        char line[20];
-        int father_call = read(fd[0], line, 20);                // Receive the signal from father process
-        if(father_call == 19){
-            printf("Successfully pipe communication!\n");
-            printf("The message from father process is: %s\n", line);       // Prove that the pipe does work
-        }
-        int res_dup_son = dup2(fd[0], STDIN_FILENO);
+
+        int res_dup_son = dup2(fd[1], STDOUT_FILENO);
         if(res_dup_son < 0){
             printf("fd[0] dup in pipe communication error...\n");
             exit(1);
         }
         int res = 0;
-        execvp(secArgs[0], secArgs);                  // The kernel load new program into the child process and execute
+        execvp(firArgs[0], firArgs);                  // The kernel load new program into the child process and execute
         if(res < 0){
             printf("The second command execution error in pipe communication...\n");
             exit(1);
         }
-        if(close(fd[0]) < 0){
-            printf("Error occurred when closing fd[0] in pipe communication...\n");
+        if(close(fd[1]) < 0){
+            printf("Error occurred when closing fd[1] in pipe communication...\n");
             exit(1);
         }
         exit(0);                                                    // Once child process have finished, exit(0)
     }
-    else if(ppid > 0)               // Father process
+    else if(ppid > 0)               // Father process reads, so close fd[1]
     {
-        if(close(fd[0]) < 0){
-            printf("Error occurred when closing fd[0] in pipe communication...\n");
+        if(close(fd[1]) < 0){
+            printf("Error occurred when closing fd[1] in pipe communication...\n");
             exit(1);
         }
-        write(fd[1], "Successfully pipe!!", 19);       // Send signal to child process
-        if(waitFlag){
-            wait(NULL);
-            printf("Child Complete...\n");
-        }
-        else {
-            signal(SIGCHLD, SIG_IGN);
-        }
-        int res_dup_father = dup2(fd[1], STDIN_FILENO);
+        wait(NULL);
+
+        int res_dup_father = dup2(fd[0], STDIN_FILENO);
         if(res_dup_father < 0){
             printf("fd[1] dup in pipe communication error...\n");
             exit(1);
         }
-        execvp(firArgs[0], firArgs);                  // Note: this will return -1 since it is exactly the current program
-        if(close(fd[1]) < 0){
-            printf("Error occurred when closing fd[1] in pipe communication...\n");
+        execvp(secArgs[0], secArgs);                  // Note: this will return -1 since it is exactly the current program
+        if(close(fd[0]) < 0){
+            printf("Error occurred when closing fd[0] in pipe communication...\n");
             exit(1);
         }
     }
