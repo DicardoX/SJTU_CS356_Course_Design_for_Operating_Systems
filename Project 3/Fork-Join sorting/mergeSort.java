@@ -111,6 +111,11 @@ public class MergeSort extends RecursiveAction
 		System.out.println("Please choose whether randomly generete the array (input Y) or self input the array (input N):");
 		cmd = input.next().charAt(0);
 
+		if(cmd != 'Y' && cmd != 'N'){
+			System.out.println("Wrong mode choice!");
+			System.exit(0);
+		}
+
 		System.out.println("Please input the size of the randomly genereted array:");
 		Size = input.nextInt();
 
@@ -171,7 +176,7 @@ public class MergeSort extends RecursiveAction
 				break;
 
 			default:
-				break;
+				System.exit(0);
 		}
 
 	}
