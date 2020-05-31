@@ -62,7 +62,6 @@ public class MergeSort extends RecursiveAction
 	{
 		if(right - left + 1 < Threshold)				// Use bubble sort
 		{
-			//System.out.println("Left = " + left + " Right = " + right);
 			boolean swapped;
 			for(int i=left; i < right; i++){
 				swapped = false;
@@ -76,12 +75,8 @@ public class MergeSort extends RecursiveAction
 				}
 				if(!swapped) break;
 			}
-
-			//System.out.println("Start from " + left + " The tmp array is:");
-			//System.out.println(Arrays.toString(arr));
-
 		}
-		else 											// Use quick merge sort
+		else 											// Use merge sort
 		{
 			int mid = (left + right) / 2;
 
