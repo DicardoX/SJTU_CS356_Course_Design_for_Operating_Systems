@@ -29,7 +29,6 @@ public class QuickSort extends RecursiveAction
 	{
 		if(right - left + 1 < Threshold)				// Use bubble sort
 		{
-			//System.out.println("Left = " + left + " Right = " + right);
 			boolean swapped;
 			for(int i=left; i < right; i++){
 				swapped = false;
@@ -43,10 +42,6 @@ public class QuickSort extends RecursiveAction
 				}
 				if(!swapped) break;
 			}
-
-			//System.out.println("Start from " + left + " The tmp array is:");
-			//System.out.println(Arrays.toString(arr));
-
 		}
 		else 											// Use quick sort
 		{
