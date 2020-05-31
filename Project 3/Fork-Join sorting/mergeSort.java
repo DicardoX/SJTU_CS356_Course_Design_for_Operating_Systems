@@ -116,7 +116,7 @@ public class MergeSort extends RecursiveAction
 			System.exit(0);
 		}
 
-		System.out.println("Please input the size of the randomly genereted array:");
+		System.out.println("Please input the size of the randomly genereted (or input) array :");
 		Size = input.nextInt();
 
 		int [] arr = new int[Size];
