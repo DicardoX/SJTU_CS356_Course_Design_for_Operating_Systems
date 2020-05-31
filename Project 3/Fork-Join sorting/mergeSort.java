@@ -24,15 +24,49 @@ public class MergeSort extends RecursiveAction
 		this.arr = arr;
 	} 
 
+	protected void merge(int[] arr, int left, int right)
+	{
+		int[] tmp_arr = new int[right - left + 1];
+		int mid = (left + right) / 2;
+		int left_vis = left;
+		int right_vis = mid + 1;
+		int vis = 0;
+
+		while(left_vis <= mid && right_vis <= right)
+		{
+			// Compare 
+			if(arr[left_vis] < arr[right_vis]){
+				tmp_arr[vis++] = arr[left_vis++];
+			}
+			else{
+				tmp_arr[vis++] = arr[right_vis++];
+			}
+		}
+			// Rest part
+			while(left_vis <= mid){
+				tmp_arr[vis++] = arr[left_vis++];
+			}
+			while(right_vis <= right){
+				tmp_arr[vis++] = arr[right_vis++];
+			}
+			// Modify intial array
+			for(int i = 0; i < right - left + 1; i++){
+				arr[left + i] = tmp_arr[i];
+			}
+
+	}
+
+
 	/** Override compute() */
 	protected void compute()					
 	{
 		if(right - left + 1 < Threshold)				// Use bubble sort
 		{
+			//System.out.println("Left = " + left + " Right = " + right);
 			boolean swapped;
 			for(int i=left; i < right; i++){
 				swapped = false;
-				for(int j = left; j < right - i; j++){
+				for(int j = left; j < right + left - i; j++){
 					if(arr[j] > arr[j+1]){
 						int tmp = arr[j];				// Swap
 						arr[j] = arr[j+1];
@@ -42,10 +76,15 @@ public class MergeSort extends RecursiveAction
 				}
 				if(!swapped) break;
 			}
+
+			//System.out.println("Start from " + left + " The tmp array is:");
+			//System.out.println(Arrays.toString(arr));
+
 		}
 		else 											// Use quick merge sort
 		{
 			int mid = (left + right) / 2;
+
 			MergeSort lTask = new MergeSort(left, mid, arr);
 			MergeSort rTask = new MergeSort(mid+1, right, arr);
 
@@ -57,37 +96,6 @@ public class MergeSort extends RecursiveAction
 			rTask.join();
 			/** Merge */
 			merge(arr, left, right);
-		}
-	}
-
-	protected void merge(int[] arr, int l, int r)
-	{
-		int[] tmp_arr = new int[r - l + 1];
-		int mid = (l + r) / 2;
-		int left = l;
-		int right = r;
-		int vis = 0;
-
-		while(left <= mid && right <= r)
-		{
-			// Compare 
-			if(arr[left] < arr[right]){
-				tmp_arr[vis++] = arr[left++];
-			}
-			else{
-				tmp_arr[vis++] = arr[right++];
-			}
-			// Rest part
-			while(left <= mid){
-				tmp_arr[vis++] = arr[left++];
-			}
-			while(right <= r){
-				tmp_arr[vis++] = arr[right++];
-			}
-			// Modify intial array
-			for(int i = 0; i < r - l + 1; i++){
-				arr[l + i] = tmp_arr[i];
-			}
 		}
 	}
 
