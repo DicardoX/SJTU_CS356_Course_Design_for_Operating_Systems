@@ -80,73 +80,115 @@ void *func(void *threadName)
     pthread_exit(0);
 }
 
+void thread_func()
+{
+    /** Initialize the flag */
+    flag1 = 0;
+    flag2 = 0;
+
+    /** Thread identifier & attributions, tid1 and tid2 are sort threads, while tid3 is merge thread */
+    pthread_t tid[3];
+    pthread_attr_t attr[3];
+
+    /** Initialize Thread attribution */
+    for(int i=0; i < 3; i++)
+        pthread_attr_init(&attr[i]);
+
+    /** Thread name */
+    char *threadName[] = {"sortThread1", "sortThread2", "mergeThread"};
+
+    /** Thread creation */
+    pthread_create(&tid[0], &attr[0], func, threadName[0]);
+    pthread_create(&tid[1], &attr[1], func, threadName[1]);
+    pthread_create(&tid[2], &attr[2], func, threadName[2]);
+
+    /** Thread join */
+    pthread_join(tid[0], NULL);
+    pthread_join(tid[1], NULL);
+    pthread_join(tid[2], NULL);
+}
+
+void Output()
+{
+    /** Print result */
+    printf("The sorted array is:\n");
+    for(int i=0; i < Size; i++){
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+
+    /** Check correctness */
+    for(int i=1; i < Size; i++){
+        if(arr[i-1] > arr[i]){
+            printf("Error!\n");
+            exit(1);
+        }
+    }
+}
+
+
 int main(void)
 {
     int times = MAX;
 
+    char cmd;
+    printf("Please choose to randomly generate arrays (input Y) or input array by yourself (input N)\n");
+    scanf("%c", &cmd);
+    if(cmd != 'Y' && cmd != 'N'){
+        printf("Wrong mod choice!\n");
+        exit(0);
+    }
+
     /** Input the size of array to be genereted */
-    printf("Please input the size of array you want to genereted:\n");
+    printf("Please input the size of array you want to generated (or input):\n");
     scanf("%d", &Size);
 
-    /** Iteration */
-    while(times--)                                          // Note: If you don't want to use loop to check correctness, just note it
-    {
-        /** Initialize the array (input or randomly generated) */
-        arr = malloc(sizeof(int) * Size);
-        srand((unsigned)time(NULL));
-        for(int i=0; i < Size; i++) {
-            /** Randomly generated, if not use, just note it */
-            arr[i] = (rand() % MAXSIZE * 2) - MAXSIZE;      // Range: -500 ~ 500
+    switch (cmd) {
+        case 'Y':
+            /** Iteration */
+            while(times--) {
+                /** Initialize the array ( randomly generated) */
+                arr = malloc(sizeof(int) * Size);
+                srand((unsigned) time(NULL));
+                for (int i = 0; i < Size; i++) {
+                    /** Randomly generated */
+                    arr[i] = (rand() % MAXSIZE * 2) - MAXSIZE;      // Range: -500 ~ 500
+                }
+                printf("The initial array is:\n");
+                for (int i = 0; i < Size; i++) {
+                    printf("%d ", arr[i]);
+                }
+                printf("\n");
 
-            /** Input, if not use, just note it */
-            //scanf("%d", &arr[i]);
-        }
-        printf("The initial array is:\n");
-        for(int i=0; i < Size; i++){
-            printf("%d ", arr[i]);
-        }
-        printf("\n");
+                /** Thread initialize, create and join */
+                thread_func();
 
-        /** Initialize the flag */
-        flag1 = 0;
-        flag2 = 0;
-
-        /** Thread identifier & attributions, tid1 and tid2 are sort threads, while tid3 is merge thread */
-        pthread_t tid[3];
-        pthread_attr_t attr[3];
-
-        /** Initialize Thread attribution */
-        for(int i=0; i < 3; i++)
-            pthread_attr_init(&attr[i]);
-
-        /** Thread name */
-        char *threadName[] = {"sortThread1", "sortThread2", "mergeThread"};
-
-        /** Thread creation */
-        pthread_create(&tid[0], &attr[0], func, threadName[0]);
-        pthread_create(&tid[1], &attr[1], func, threadName[1]);
-        pthread_create(&tid[2], &attr[2], func, threadName[2]);
-
-        /** Thread join */
-        pthread_join(tid[0], NULL);
-        pthread_join(tid[1], NULL);
-        pthread_join(tid[2], NULL);
-
-        /** Print result */
-        printf("The sorted array is:\n");
-        for(int i=0; i < Size; i++){
-            printf("%d ", arr[i]);
-        }
-        printf("\n");
-
-        /** Check correctness */
-        for(int i=1; i < Size; i++){
-            if(arr[i-1] > arr[i]){
-                printf("Error!\n");
-                exit(1);
+                Output();
+                printf("--------Round %d Success!--------\n", MAX - times);
             }
-        }
-        printf("--------Round %d Success!--------\n", MAX - times);
+
+            break;
+
+        case 'N':
+            /** Initialize the array ( input by yourself ) */
+            arr = malloc(sizeof(int) * Size);
+            printf("Please input the array:\n");
+            for(int i=0; i < Size; i++) {
+                /** Input */
+                scanf("%d", &arr[i]);
+            }
+
+            /** Thread initialize, create and join */
+            thread_func();
+
+            Output();
+            printf("--------Success!--------\n");
+
+            break;
+
+        default:
+            printf("Wrong mode choice!\n");
+            exit(0);
     }
 
     return 0;
