@@ -83,7 +83,7 @@ void *func(void *threadName)
 int main(void)
 {
     int times = MAX;
-    
+
     /** Input the size of array to be genereted */
     printf("Please input the size of array you want to genereted:\n");
     scanf("%d", &Size);
@@ -142,7 +142,7 @@ int main(void)
         /** Check correctness */
         for(int i=1; i < Size; i++){
             if(arr[i-1] > arr[i]){
-                printf("Failed!\n");
+                printf("Error!\n");
                 exit(1);
             }
         }
