@@ -12,7 +12,8 @@
 #define MAXSIZE 500
 #define MAX 500000      // The max iteration times
 
-#define Size 6
+int Size;
+
 int *arr;
 int flag1, flag2;                                       // Whether two sort threads have finished
 
@@ -82,6 +83,12 @@ void *func(void *threadName)
 int main(void)
 {
     int times = MAX;
+    
+    /** Input the size of array to be genereted */
+    printf("Please input the size of array you want to genereted:\n");
+    scanf("%d", &Size);
+
+    /** Iteration */
     while(times--)                                          // Note: If you don't want to use loop to check correctness, just note it
     {
         /** Initialize the array (input or randomly generated) */
