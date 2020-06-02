@@ -37,7 +37,7 @@ void schedule(){
     int cnt = 0;
     int cur_waitTime = 0;
     
- 	while((*head)->next != NULL){
+    while((*head)->next != NULL){
  	 	(*p) = (*head);
  	 	while((*p)->next != NULL)
  	 		(*p) = (*p)->next;  
