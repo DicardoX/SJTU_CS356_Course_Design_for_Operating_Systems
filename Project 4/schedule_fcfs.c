@@ -38,9 +38,9 @@ void schedule(){
     int cur_waitTime = 0;
     
     while((*head)->next != NULL){
- 	 	(*p) = (*head);
- 	 	while((*p)->next != NULL)
- 	 		(*p) = (*p)->next;  
+ 	    (*p) = (*head);
+ 	    while((*p)->next != NULL)
+ 	 	    (*p) = (*p)->next;  
  	 	/** Run the task */
  	 	run((*p)->task, (*p)->task->burst);
  	 	/** Update time information */
