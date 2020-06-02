@@ -80,10 +80,10 @@ void schedule(){
         /** Delete the task */
         delete(head, (*tmp_min)->task);
 
-        if((*tmp_min) != (*head)){		// Delete the min node
+        if((*tmp_min) != (*head)){		                // Delete the min node
             (*prev_min)->next = (*tmp_min)->next;
         }
-        else{							// If head node is the min, delete it and update the head
+        else{							                // If head node is the min, delete it and update the head
             (*head) = (*head)->next;
         }
     }
