@@ -13,12 +13,12 @@ Completing this project will require writing the following C files:
 
 The supporting files invoke the appropriate scheduling algorithm. For example, to build the FCFS scheduler, enter
 
-<center>make fcfs</center>
+<tab><tab><center>make fcfs</center>
 
 which builds the fcfs executable file.
 
 then use:
 
-<center>./fcfs schedule.txt</center>
+<tab><tab><center>./fcfs schedule.txt</center>
 
 to run the test.
