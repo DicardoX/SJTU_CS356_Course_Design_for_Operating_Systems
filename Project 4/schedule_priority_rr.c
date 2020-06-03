@@ -85,6 +85,7 @@ void schedule(){
         (*p) = (*p)->next;
     }
 
+    int prevTime = 0;
     while(*headNew != NULL){
         (*p) = (*headNew);
         int max_priority = 0;
@@ -96,17 +97,6 @@ void schedule(){
             (*p) = (*p)->next;
         }
 
-
-        /** Update response time information */
-        if(is_visited[(*tmp_max)->task->tid] == 0){
-            if((*tmp_max)->task->burst > TIME_PIECE){
-                responseTime += TIME_PIECE;
-            }
-            else{
-                responseTime += (*tmp_max)->task->burst;
-            }
-            is_visited[(*tmp_max)->task->tid] = 1;
-        }
 
 
         if((*tmp_max)->task->burst > TIME_PIECE){
@@ -130,6 +120,15 @@ void schedule(){
             printf("----------------------------------------------\n");
             delete(headNew, (*tmp_max)->task);
         }
+
+
+        /** Update response time information */
+        if(is_visited[(*tmp_max)->task->tid] == 0){
+            responseTime += prevTime;
+            is_visited[(*tmp_max)->task->tid] = 1;
+        }
+
+        prevTime = cur_Time;
     }
 
     waitTime = turnaroundTime - total_burstTime;
