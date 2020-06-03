@@ -43,7 +43,6 @@ void schedule(){
     int cur_Time = 0;
     int is_visited[MAX];
     int total_burstTime = 0;
-    int first_visited = 0;
 
 
     /** reverse the list */
@@ -74,18 +73,20 @@ void schedule(){
     }
 
     (*p) = (*headNew);
+    int prev_burstTime = 0;
     while(*headNew != NULL){
 
         /** Update response time information */
         if(is_visited[(*p)->task->tid] == 0){
-            if((*p)->task->burst > TIME_PIECE && first_visited != 0){
-                responseTime += TIME_PIECE;
+            if((*p)->task->burst > TIME_PIECE){
+                responseTime += prev_burstTime;
+                prev_burstTime = TIME_PIECE;
             }
-            else if((*p)->task->burst <= TIME_PIECE && first_visited != 0){
-                responseTime += (*p)->task->burst;
+            else{
+                responseTime += prev_burstTime;
+                prev_burstTime = (*p)->task->burst;
             }
             is_visited[(*p)->task->tid] = 1;
-            first_visited = 1;
         }
 
 
