@@ -77,13 +77,14 @@ int enqueue(task t)
 task dequeue()
 {
     task res = head->myTask;
+    struct node *tmp = head;
     if(head->next == NULL){
     	if(!finished)
         	printf("List becomes empty...\n");
         return res;
     }
     head = head->next;				// If head->next == NULL and execute to here, will cause segment fault !!!
-    //free(tmp);
+    free(tmp);					// Delete used node
     return res;
 }
 
@@ -173,7 +174,6 @@ void pool_shutdown(void)
 {
     printf("Shutting down...\n");
     	
-    //free(head);
     /** Set flag */
     shutDown = 1;
     /** Join thread */
@@ -185,6 +185,9 @@ void pool_shutdown(void)
     pthread_mutex_destroy(&mutex);
     /** Delete semaphore */
     sem_destroy(&available_taskNum);
+    
+    /** Delete head node of the list */
+    free(head);
 	
 	printf("Complete shutting down!\n");
 }
