@@ -97,25 +97,23 @@ void *worker(void *param)
             printf("Thread %d is waiting for task...\n", (int)pthread_self() % MOD + MOD);
             sem_wait(&available_taskNum);
         }
-        //printf("%d\n", taskNum);
         /** Running task */
         pthread_mutex_lock(&mutex);                     // Lock
         task myTask = dequeue();
         taskNum--;
         if(taskNum == 0){
         	finished = 1;
-        	printf("oooooops!\n");
         	execute(myTask.function, myTask.data);          // Run task
         	printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
         	pthread_mutex_unlock(&mutex); 
         	continue;
         } 
         pthread_mutex_unlock(&mutex);                   // Unlock
-        
-        execute(myTask.function, myTask.data);          // Run task
-        printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
-        sleep(0.5);
-        
+        if(!finished){
+        	execute(myTask.function, myTask.data);          // Run task
+        	printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
+        	sleep(0.5);
+        }  
     }
     
     pthread_exit(0);
