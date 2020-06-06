@@ -79,7 +79,8 @@ task dequeue()
 {
     task res = head->myTask;
     if(head->next == NULL){
-        printf("List becomes empty...\n");
+    	if(!finished)
+        	printf("List becomes empty...\n");
         return res;
     }
     head = head->next;				// If head->next == NULL and execute to here, will cause segment fault !!!
@@ -103,9 +104,10 @@ void *worker(void *param)
         taskNum--;
         if(taskNum == 0){
         	finished = 1;
+        	pthread_mutex_unlock(&mutex); 
         	execute(myTask.function, myTask.data);          // Run task
         	printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
-        	pthread_mutex_unlock(&mutex); 
+        	sleep(0.5);
         	continue;
         } 
         pthread_mutex_unlock(&mutex);                   // Unlock
