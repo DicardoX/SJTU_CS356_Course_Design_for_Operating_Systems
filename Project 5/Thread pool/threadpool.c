@@ -16,7 +16,7 @@
 
 #define TRUE 1
 #define ERROR 0
-#define MAX_THREAD 5
+#define MAX_THREAD 3
 
 /** This represents work that has to be completed by a thread in the pool */
 typedef struct
@@ -60,15 +60,15 @@ int enqueue(task t)
     newNode->myTask = t;
     newNode->next = NULL;
 
-    if(head == NULL){
-        head = newNode;
-    }
-    else{
-        tmp = head;
-        while(tmp->next != NULL)
-            tmp = tmp->next;
-        tmp->next = newNode;
-    }
+	if(head == NULL){
+		head = newNode;
+	}
+	else{
+		tmp = head;
+    	while(tmp->next != NULL)
+        	tmp = tmp->next;
+    	tmp->next = newNode;
+	}
 
     return TRUE;
 }
@@ -77,46 +77,43 @@ int enqueue(task t)
 task dequeue()
 {
     task res = head->myTask;
-    struct node* tmp = head;
     if(head->next == NULL){
         printf("List becomes empty...\n");
-        finished = 1;				// Finish
+        return res;
     }
-    head = head->next;
-    free(tmp);
+    head = head->next;				// If head->next == NULL and execute to here, will cause segment fault !!!
+    //free(tmp);
     return res;
 }
 
 // the worker thread in the thread pool
 void *worker(void *param)
-{
-    // execute the task
-    //execute(worktodo.function, worktodo.data);
+{    
 
-    while(1){
+    while(shutDown != 1){
         /** No available task */
-        if(!shutDown && taskNum == 0){
+        while(!shutDown && taskNum == 0){
             printf("Thread %d is waiting for task...\n", (int)pthread_self() % MOD + MOD);
-            if(finished){
-            	return;
-            }
             sem_wait(&available_taskNum);
-            
         }
-        /** Shutdown */
-        if(shutDown){
-            printf("Thread %d is shutting down...\n", (int)pthread_self() % MOD + MOD);
-            pthread_exit(0);
-        }
+        //printf("%d\n", taskNum);
         /** Running task */
         pthread_mutex_lock(&mutex);                     // Lock
         task myTask = dequeue();
         taskNum--;
+        if(taskNum == 0){
+        	finished = 1;
+        	pthread_mutex_unlock(&mutex); 
+        	continue;
+        } 
         pthread_mutex_unlock(&mutex);                   // Unlock
+        
         execute(myTask.function, myTask.data);          // Run task
         printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
-
+        
     }
+    
+    pthread_exit(0);
 }
 
 /**
@@ -175,14 +172,8 @@ void pool_init(void)
 void pool_shutdown(void)
 {
     printf("Shutting down...\n");
-    /** Delete link list */
-    struct node *tmp;
-    while(head->next != NULL){
-        tmp = head;
-        head = head->next;
-        free(tmp);
-    }
-    free(head);
+    /** Delete head of link list */
+    //free(head);
     /** Set flag */
     shutDown = 1;
     /** Join thread */
@@ -194,5 +185,5 @@ void pool_shutdown(void)
     pthread_mutex_destroy(&mutex);
     /** Delete semaphore */
     sem_destroy(&available_taskNum);
-
+	
 }
