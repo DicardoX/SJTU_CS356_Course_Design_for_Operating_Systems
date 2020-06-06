@@ -1,7 +1,3 @@
-/**
- * Example client program that uses thread pool.
- */
-
 #include <stdio.h>
 #include <unistd.h>
 #include "threadpool.h"
@@ -47,8 +43,6 @@ int main(void)
 
     // may be helpful 
     sleep(3);
-
-	printf("aaaa\n");
 
     pool_shutdown();
 
