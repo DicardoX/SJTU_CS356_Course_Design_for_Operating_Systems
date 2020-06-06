@@ -37,7 +37,6 @@ pthread_t pid[MAX_THREAD];
 pthread_attr_t attr[MAX_THREAD];
 /** Head node */
 struct node *head;
-struct node *origin_head;
 /** Mutex */
 pthread_mutex_t mutex;
 /** Flag for shutdown */
@@ -88,51 +87,46 @@ task dequeue()
     return res;
 }
 
-// the worker thread in the thread pool
+/** the Worker threads in the thread pool */
 void *worker(void *param)
 {    
 
     while(shutDown != 1){
         /** No available task */
-        while(!shutDown && taskNum == 0){
+        if(!shutDown && taskNum <= 0){
             printf("Thread %d is waiting for task...\n", (int)pthread_self() % MOD + MOD);
             sem_wait(&available_taskNum);
         }
         /** Running task */
         pthread_mutex_lock(&mutex);                     // Lock
         task myTask = dequeue();
-        taskNum--;
+        if(taskNum > -1)
+        	taskNum--;										// will be finally fixed to -1
+
         if(taskNum == 0){
         	finished = 1;
         	pthread_mutex_unlock(&mutex); 
-        	execute(myTask.function, myTask.data);          // Run task
+        	execute(myTask.function, myTask.data);          // Run the last task
         	printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
-        	sleep(0.5);
         	continue;
         } 
-        pthread_mutex_unlock(&mutex);                   // Unlock
         if(!finished){
         	execute(myTask.function, myTask.data);          // Run task
         	printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
-        	sleep(0.5);
         }  
+        pthread_mutex_unlock(&mutex);                   // Unlock
+        sleep(1);										// To make the threads could run task in turn, the thread MAY be in this sleep and doesn't print "waiting..." in the last
     }
     
     pthread_exit(0);
 }
 
-/**
- * Executes the task provided to the thread pool
- */
-void execute(void (*somefunction)(void *p), void *p)
-{
-    (*somefunction)(p);
-    
+ /** Executes the task provided to the thread pool */
+void execute(void (*somefunction)(void *p), void *p){
+    (*somefunction)(p);    
 }
 
-/**
- * Submits work to the pool.
- */
+/** Submits work to the pool */
 int pool_submit(void (*somefunction)(void *p), void *p)
 {
     task myTask;
@@ -151,14 +145,13 @@ int pool_submit(void (*somefunction)(void *p), void *p)
     return 0;
 }
 
-// initialize the thread pool
+/** Initialize the thread pool */
 void pool_init(void)
 {
     shutDown = 0;
     finished = 0;
     taskNum = 0;
     head = NULL;
-    origin_head = head;
 
     /** Thread initialization */
     for(int i=0; i < MAX_THREAD; i++){
@@ -175,7 +168,7 @@ void pool_init(void)
 
 }
 
-// shutdown the thread pool
+/** Shutdown the thread pool */
 void pool_shutdown(void)
 {
     printf("Shutting down...\n");
@@ -193,4 +186,5 @@ void pool_shutdown(void)
     /** Delete semaphore */
     sem_destroy(&available_taskNum);
 	
+	printf("Complete shutting down!\n");
 }
