@@ -37,6 +37,7 @@ pthread_t pid[MAX_THREAD];
 pthread_attr_t attr[MAX_THREAD];
 /** Head node */
 struct node *head;
+struct node *origin_head;
 /** Mutex */
 pthread_mutex_t mutex;
 /** Flag for shutdown */
@@ -103,6 +104,9 @@ void *worker(void *param)
         taskNum--;
         if(taskNum == 0){
         	finished = 1;
+        	printf("oooooops!\n");
+        	execute(myTask.function, myTask.data);          // Run task
+        	printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
         	pthread_mutex_unlock(&mutex); 
         	continue;
         } 
@@ -110,6 +114,7 @@ void *worker(void *param)
         
         execute(myTask.function, myTask.data);          // Run task
         printf("Thread %d has finished a task...\n", (int)pthread_self() % MOD + MOD);
+        sleep(0.5);
         
     }
     
@@ -122,6 +127,7 @@ void *worker(void *param)
 void execute(void (*somefunction)(void *p), void *p)
 {
     (*somefunction)(p);
+    
 }
 
 /**
@@ -152,6 +158,7 @@ void pool_init(void)
     finished = 0;
     taskNum = 0;
     head = NULL;
+    origin_head = head;
 
     /** Thread initialization */
     for(int i=0; i < MAX_THREAD; i++){
@@ -172,7 +179,7 @@ void pool_init(void)
 void pool_shutdown(void)
 {
     printf("Shutting down...\n");
-    /** Delete head of link list */
+    	
     //free(head);
     /** Set flag */
     shutDown = 1;
