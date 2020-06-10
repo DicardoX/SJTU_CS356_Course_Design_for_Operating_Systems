@@ -60,15 +60,16 @@ void init(){
         maximum[i] = malloc(sizeof(int) * resourcesTypeNum);
         allocation[i] = malloc(sizeof(int) * resourcesTypeNum);
         need[i] = malloc(sizeof(int) * resourcesTypeNum);
-        memset(maximum[i], 0, resourcesTypeNum);
+        //memset(maximum[i], 0, resourcesTypeNum);
         memset(allocation[i], 0, resourcesTypeNum);
-        memset(need[i], 0, resourcesTypeNum);
+        //memset(need[i], 0, resourcesTypeNum);
     }
     memset(available, 0, resourcesTypeNum);
-
+   
     /** Move to the beginning and read data */
     int i, j = 0;
     fseek(fileName, 0, SEEK_SET);
+
     while(fgets(buffer, MAX_LENGTH, fileName) != NULL)
     {
         for(int idx = 0; idx < MAX_LENGTH; idx++){
@@ -85,6 +86,7 @@ void init(){
     }
     /** Close file */
     fclose(fileName);
+    printf("Successfully close file...\n");
 }
 
 int release(int customerIdx, int *array){
