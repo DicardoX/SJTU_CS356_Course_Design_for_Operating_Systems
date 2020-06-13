@@ -77,7 +77,7 @@ void compact()
             tmp_block[tmp_blockSize].end = tmp_vis + block[i].end - block[i].start;
             tmp_block[tmp_blockSize].status = block[i].status;
             tmp_block[tmp_blockSize].name = block[i].name;
-            tmp_vis++;          // New start
+            tmp_vis = tmp_block[tmp_blockSize].end + 1;          // New start
             tmp_blockSize++;
         }
     }
@@ -94,6 +94,8 @@ void compact()
     block[blockSize - 1].end = memSize;
     block[blockSize - 1].status = 0;        // Unused
     block[blockSize - 1].name = "Unused";
+
+    //printf("Successfully compact!\n");
 }
 
 /** Insert */
@@ -119,10 +121,10 @@ void insert(int size, char *name, int start, int end, int num)
     block[num+1].end = block[num].end;
     block[num+1].name = block[num].name;
     block[num+1].status = block[num].status;
-    block[num+1].start = block[num].start + size + 1;
+    block[num+1].start = block[num].start + size;
     /// Left half
     block[num].start = block[num].start;
-    block[num].end = block[num].start + size;
+    block[num].end = block[num].start + size - 1;
     block[num].status = 1;      // Allocated
     block[num].name = name;
 
@@ -201,8 +203,8 @@ void request(char *buffer)
     }
     if(!isAllocated)
         printf("Error: could not find a suitable hole to insert...\n");
-    else
-        printf("Successfully insert!\n");
+    //else
+        //printf("Successfully insert!\n");
 }
 
 void release(char *buffer)
@@ -216,7 +218,7 @@ void release(char *buffer)
     int name_existed = 0;
     int num = 0;
     for(int i = 0; i < blockSize; i++){
-        if(block[i].name == name){
+        if(strcmp(name, block[i].name) == 0){
             name_existed = 1;
             num = i;
             break;
@@ -233,11 +235,13 @@ void release(char *buffer)
     /// Left
     if(num > 0 && block[num-1].status == 0){
         merge(block[num-1].start, block[num].end, num);
+        num--;
     }
     /// Right
     if(num < blockSize - 1 && block[num+1].status == 0){
         merge(block[num].start, block[num+1].end, num+1);
     }
+    //printf("Successfully release %s!\n", name);
 }
 
 void statusDisplay()
